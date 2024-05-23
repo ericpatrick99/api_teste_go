@@ -12,6 +12,25 @@ type Usuarios struct {
 func NovoRepositorioDeUsuario(db *sql.DB) *Usuarios {
 	return &Usuarios{db: db}
 }
-func (u Usuarios) Criar(usuario modelos.Usuario) (uint64, error) {
-	return 0, nil
+func (repositorio Usuarios) Criar(usuario modelos.Usuario) (uint64, error) {
+	statement, erro := repositorio.db.Prepare(
+		"insert into usuario(name, nick_name, email, password) values (?,?,?,?)",
+	)
+	if erro != nil {
+		return 0, erro
+	}
+	defer statement.Close()
+
+	resultado, erro := statement.Exec(usuario.Name, usuario.NickName, usuario.Email, usuario.Password)
+
+	if erro != nil {
+		return 0, erro
+	}
+
+	ultimoIDInserido, erro := resultado.LastInsertId()
+
+	if erro != nil {
+		return 0, erro
+	}
+	return uint64(ultimoIDInserido), nil
 }
